@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Prompt Engineer · Hugo</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   TOKENS — DARK
+═══════════════════════════════════════ */
+:root{
+  --bg:#0d0f14;--bg2:#10131a;
+  --surface:#13161e;--surface2:#1a1e2a;
+  --border:#1e2330;--border2:#262c3d;
+  --accent:#4fffb0;--accent2:#00c4ff;
+  --accent3:#ffc700;--accent4:#b44fff;
+  --danger:#ff4f6e;
+  --text:#e8eaf2;--text2:#9aa3be;--muted:#5a6280;
+  --radius:10px;--glow:0 0 20px rgba(79,255,176,.15);
+  --shadow:0 2px 12px rgba(0,0,0,.4);
+  --noise-op:.5;--preview-c:#b4c0d8;
+}
+/* ═══════════════════════════════════════
+   TOKENS — LIGHT
+═══════════════════════════════════════ */
+[data-theme="light"]{
+  --bg:#f0f2f8;--bg2:#e8ebf4;
+  --surface:#fff;--surface2:#f5f6fb;
+  --border:#dde0ed;--border2:#c8cce0;
+  --accent:#00a86b;--accent2:#0077cc;
+  --accent3:#d48000;--accent4:#8a2be2;
+  --danger:#d93050;
+  --text:#1a1d2e;--text2:#4a5170;--muted:#8890b0;
+  --glow:0 0 20px rgba(0,168,107,.12);
+  --shadow:0 2px 12px rgba(0,0,0,.1);
+  --noise-op:.15;--preview-c:#3a4060;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:var(--noise-op);pointer-events:none;z-index:0}
+
+.wrapper{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:40px 22px 80px}
+
+/* ── HEADER ── */
+header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;gap:16px;flex-wrap:wrap}
+.logo-area h1{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.logo-area h1 span{color:var(--accent)}
+.logo-area p{font-family:'Plus Jakarta Sans',sans-serif;font-size:.67rem;color:var(--muted);margin-top:5px;letter-spacing:.08em;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(79,255,176,.08);border:1px solid rgba(79,255,176,.2);color:var(--accent);font-family:'Plus Jakarta Sans',sans-serif;font-size:.65rem;padding:5px 11px;border-radius:99px;letter-spacing:.06em}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.theme-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);color:var(--text2);cursor:pointer;display:grid;place-items:center;transition:all .2s;font-size:1rem}
+.theme-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--accent)}
+
+/* ── TABS ── */
+.mode-tabs{display:flex;gap:5px;margin-bottom:28px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:5px}
+.tab-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 10px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:.76rem;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.tab-btn.active .tab-icon{color:var(--accent)}
+.tab-icon{font-size:.88rem}
+
+/* ── PANELS ── */
+.panel{display:none}
+.panel.active{display:block;animation:fadeUp .35s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SECTION CARDS ── */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:14px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s,background .3s}
+.section::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;opacity:0;transition:opacity .2s}
+.section.c-ctx::before{background:var(--accent2)}
+.section.c-pers::before{background:var(--accent4)}
+.section.c-task::before{background:var(--accent)}
+.section.c-goal::before{background:var(--accent3)}
+.section.c-fmt::before{background:var(--accent4)}
+.section.c-more::before{background:var(--danger)}
+.section.c-proj::before{background:var(--accent3)}
+.section:focus-within{border-color:var(--border2);box-shadow:var(--glow)}
+.section:focus-within::before{opacity:1}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+.section-title{display:flex;align-items:center;gap:9px}
+.section-icon{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;font-size:.88rem;flex-shrink:0}
+.icon-ctx{background:rgba(0,196,255,.1)}.icon-pers{background:rgba(180,79,255,.1)}.icon-task{background:rgba(79,255,176,.1)}.icon-goal{background:rgba(255,199,0,.1)}.icon-fmt{background:rgba(180,79,255,.1)}.icon-more{background:rgba(255,79,110,.1)}.icon-proj{background:rgba(255,199,0,.1)}
+.section-title h2{font-size:.82rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
+.section-title p{font-family:'Plus Jakarta Sans',sans-serif;font-size:.62rem;color:var(--muted);letter-spacing:.04em}
+.char-count{font-family:'Plus Jakarta Sans',sans-serif;font-size:.6rem;color:var(--muted);flex-shrink:0}
+
+/* ── INPUTS ── */
+textarea,input[type="text"],select.field-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;line-height:1.65;padding:11px 13px;outline:none;transition:border-color .2s,background .2s;letter-spacing:.01em}
+textarea{resize:vertical;min-height:82px}
+textarea:focus,input[type="text"]:focus,select.field-select:focus{border-color:rgba(79,255,176,.4);background:var(--surface)}
+textarea::placeholder,input::placeholder{color:var(--muted);font-style:italic;opacity:.7}
+.subfields{display:flex;flex-direction:column;gap:11px}
+.subfield label,.field-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
+
+/* ── STEPS MODE ── */
+.steps-toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.steps-info{font-family:'Plus Jakarta Sans',sans-serif;font-size:.78rem;color:var(--muted);margin-bottom:16px;line-height:1.6;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px}
+.steps-info strong{color:var(--accent)}
+#steps-list{display:flex;flex-direction:column;gap:10px}
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s,box-shadow .2s;animation:fadeUp .3s ease both}
+.step-card:focus-within{border-color:var(--border2);box-shadow:var(--glow)}
+.step-head{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#0d0f14;font-size:.7rem;font-weight:800;display:grid;place-items:center;flex-shrink:0}
+.step-title-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;font-weight:700;outline:none;min-width:0;padding:0}
+.step-title-input::placeholder{color:var(--muted);font-style:italic;font-weight:400}
+.step-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 5px;border-radius:4px;font-size:.9rem;transition:color .15s,background .15s;flex-shrink:0}
+.step-del:hover{color:var(--danger);background:rgba(255,79,110,.1)}
+.step-body{padding:14px;display:flex;flex-direction:column;gap:12px}
+.step-field label{font-family:'Plus Jakarta Sans',sans-serif;font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px}
+.gate-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border-top:1px dashed var(--border2);flex-wrap:wrap}
+.gate-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0}
+.gate-select{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.72rem;padding:5px 10px;outline:none;cursor:pointer;width:auto}
+.gate-select:focus{border-color:var(--accent)}
+.gate-cond{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.72rem;padding:5px 10px;outline:none;min-width:120px;width:auto}
+.gate-cond:focus{border-color:var(--accent)}
+.gate-cond::placeholder{color:var(--muted);font-style:italic;opacity:.7}
+.gate-badge{display:inline-block;font-family:'Fira Code',monospace;font-size:.6rem;font-weight:600;padding:2px 7px;border-radius:4px;flex-shrink:0}
+.gate-badge.IF{background:rgba(79,255,176,.12);color:var(--accent)}
+.gate-badge.ELIF{background:rgba(0,196,255,.12);color:var(--accent2)}
+.gate-badge.ELSE{background:rgba(255,199,0,.12);color:var(--accent3)}
+.gate-badge.AND{background:rgba(180,79,255,.12);color:var(--accent4)}
+.gate-badge.OR{background:rgba(255,199,0,.12);color:var(--accent3)}
+.gate-badge.NOT{background:rgba(255,79,110,.12);color:var(--danger)}
+.gate-badge.STOP{background:rgba(255,79,110,.12);color:var(--danger)}
+
+/* ════════════════════════════════════════
+   PROJETO — specific styles
+════════════════════════════════════════ */
+/* overview bar */
+.proj-overview{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+@media(max-width:560px){.proj-overview{grid-template-columns:1fr}}
+
+/* wizard steps indicator */
+.wizard-nav{display:flex;align-items:center;gap:0;margin-bottom:28px;overflow-x:auto;padding-bottom:4px}
+.wiz-step{display:flex;align-items:center;gap:0;flex-shrink:0}
+.wiz-dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--border2);background:var(--surface2);color:var(--muted);font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;font-weight:700;display:grid;place-items:center;cursor:pointer;transition:all .2s;flex-shrink:0}
+.wiz-dot.active{border-color:var(--accent);background:var(--accent);color:#0d0f14}
+.wiz-dot.done{border-color:var(--accent);background:rgba(79,255,176,.15);color:var(--accent)}
+.wiz-line{width:28px;height:2px;background:var(--border2);flex-shrink:0}
+.wiz-line.done{background:var(--accent)}
+.wiz-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:.6rem;color:var(--muted);text-align:center;margin-top:4px;white-space:nowrap}
+.wiz-step-wrap{display:flex;flex-direction:column;align-items:center}
+
+/* wizard panels */
+.wiz-panel{display:none}
+.wiz-panel.active{display:flex;flex-direction:column;gap:14px;animation:fadeUp .3s ease both}
+
+/* checklist */
+.checklist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:border-color .2s,background .2s;user-select:none}
+.check-item:hover{border-color:var(--border2);background:var(--surface)}
+.check-item.checked{border-color:rgba(79,255,176,.3);background:rgba(79,255,176,.04)}
+.check-box{width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);background:var(--surface);flex-shrink:0;display:grid;place-items:center;transition:all .2s;margin-top:1px}
+.check-item.checked .check-box{border-color:var(--accent);background:var(--accent)}
+.check-icon{font-size:.65rem;color:#0d0f14;display:none}
+.check-item.checked .check-icon{display:block}
+.check-text{font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;color:var(--text2);line-height:1.5}
+.check-item.checked .check-text{color:var(--muted);text-decoration:line-through}
+.check-tip{display:block;font-size:.6rem;color:var(--muted);margin-top:2px}
+
+/* tip box */
+.tip-box{background:rgba(79,255,176,.05);border:1px solid rgba(79,255,176,.15);border-radius:8px;padding:14px 18px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;color:var(--muted);line-height:1.65}
+.tip-box strong{color:var(--accent)}
+.tip-box.blue{background:rgba(0,196,255,.05);border-color:rgba(0,196,255,.15)}
+.tip-box.blue strong{color:var(--accent2)}
+.tip-box.gold{background:rgba(255,199,0,.05);border-color:rgba(255,199,0,.15)}
+.tip-box.gold strong{color:var(--accent3)}
+.tip-box.purple{background:rgba(180,79,255,.05);border-color:rgba(180,79,255,.15)}
+.tip-box.purple strong{color:var(--accent4)}
+
+/* wiz nav buttons */
+.wiz-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px;flex-wrap:wrap}
+.progress-bar-wrap{height:4px;background:var(--border);border-radius:2px;margin-bottom:24px;overflow:hidden}
+.progress-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease}
+
+/* tags input */
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;min-height:44px;cursor:text;transition:border-color .2s}
+.tags-wrap:focus-within{border-color:rgba(79,255,176,.4);background:var(--surface)}
+.tag-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(79,255,176,.1);border:1px solid rgba(79,255,176,.2);color:var(--accent);font-family:'Plus Jakarta Sans',sans-serif;font-size:.67rem;padding:3px 8px;border-radius:99px}
+.tag-chip button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:.7rem;padding:0;line-height:1}
+.tag-chip button:hover{color:var(--danger)}
+.tags-input{background:transparent;border:none;outline:none;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.78rem;min-width:120px;flex:1}
+.tags-input::placeholder{color:var(--muted);font-style:italic;opacity:.7}
+
+/* radio group */
+.radio-group{display:flex;gap:8px;flex-wrap:wrap}
+.radio-opt{display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif;font-size:.72rem;color:var(--text2)}
+.radio-opt:hover{border-color:var(--border2);color:var(--text)}
+.radio-opt.selected{border-color:var(--accent);background:rgba(79,255,176,.06);color:var(--accent)}
+.radio-opt input{display:none}
+
+/* proj summary card */
+.summary-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:10px}
+.summary-row{display:flex;gap:8px;margin-bottom:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.72rem;line-height:1.5}
+.summary-key{color:var(--muted);min-width:140px;flex-shrink:0}
+.summary-val{color:var(--text2)}
+.summary-row:last-child{margin-bottom:0}
+
+/* ── PREVIEW ── */
+.preview-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;transition:background .3s}
+.preview-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.preview-header h3{font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+.preview-dots{display:flex;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot-r{background:#ff5f57}.dot-y{background:#febc2e}.dot-g{background:#28c840}
+#preview-output,#steps-preview-output,#proj-preview-output{padding:18px 20px;font-family:'Fira Code',monospace;font-size:.76rem;line-height:1.8;color:var(--preview-c);white-space:pre-wrap;word-break:break-word;min-height:110px;max-height:360px;overflow-y:auto}
+#preview-output::-webkit-scrollbar,#steps-preview-output::-webkit-scrollbar,#proj-preview-output::-webkit-scrollbar{width:4px}
+#preview-output::-webkit-scrollbar-thumb,#steps-preview-output::-webkit-scrollbar-thumb,#proj-preview-output::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.tag-blue{color:var(--accent2);font-weight:600}.tag-green{color:var(--accent);font-weight:600}.tag-gold{color:var(--accent3);font-weight:600}.tag-purple{color:var(--accent4);font-weight:600}.tag-red{color:var(--danger);font-weight:600}.tag-muted{color:var(--muted)}
+.tag-gate-g{color:var(--accent);font-weight:700}.tag-gate-b{color:var(--accent2);font-weight:700}.tag-gate-o{color:var(--accent3);font-weight:700}.tag-gate-p{color:var(--accent4);font-weight:700}.tag-gate-r{color:var(--danger);font-weight:700}
+
+/* ── BUTTONS ── */
+.actions{display:flex;gap:9px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:11px 20px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .18s;border:none;letter-spacing:.02em}
+.btn-primary{background:var(--accent);color:#0a0c10;box-shadow:0 0 22px rgba(79,255,176,.2)}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 0 32px rgba(79,255,176,.35)}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border2)}
+.btn-secondary:hover{background:var(--surface);color:var(--text);border-color:var(--muted);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--accent);border:1px solid rgba(79,255,176,.25)}
+.btn-ghost:hover{background:rgba(79,255,176,.08);border-color:var(--accent)}
+.btn-danger{background:rgba(255,79,110,.08);color:var(--danger);border:1px solid rgba(255,79,110,.2)}
+.btn-danger:hover{background:rgba(255,79,110,.15);border-color:var(--danger)}
+.btn-sm{padding:7px 13px;font-size:.74rem}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:6px 0 16px}
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--accent);color:#0a0c10;font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem;font-weight:700;padding:9px 22px;border-radius:99px;box-shadow:0 0 28px rgba(79,255,176,.35);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:999;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+footer{text-align:center;margin-top:48px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.62rem;color:var(--muted);letter-spacing:.06em}
+
+@media(max-width:560px){
+  .wrapper{padding:22px 12px 60px}
+  .tab-btn span{display:none}
+  .tab-btn{padding:9px 8px}
+  .btn{flex:1;justify-content:center}
+  .wiz-label{font-size:.52rem}
+}
+
+/* ═══════════════════════════════════════
+   SKILL TAB STYLES
+═══════════════════════════════════════ */
+/* type selector */
+.skill-type-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+@media(max-width:500px){.skill-type-wrap{grid-template-columns:1fr}}
+.skill-type-btn{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .2s}
+.skill-type-btn:hover{border-color:var(--border2);background:var(--surface2)}
+.skill-type-btn.active{border-color:var(--accent);background:rgba(79,255,176,.05);box-shadow:var(--glow)}
+.skill-type-icon{font-size:1.6rem;flex-shrink:0}
+.skill-type-title{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:2px}
+.skill-type-sub{font-family:'Plus Jakarta Sans',sans-serif;font-size:.74rem;color:var(--muted)}
+
+/* skill wizard panels */
+.skill-wiz-panel{display:none}
+.skill-wiz-panel.active{display:flex;flex-direction:column;gap:14px;animation:fadeUp .3s ease both}
+
+/* concept grid */
+.skill-concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.skill-concept-grid{grid-template-columns:1fr}}
+.concept-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:border-color .2s}
+.concept-card:hover{border-color:var(--border2)}
+.concept-icon{font-size:1.3rem;margin-bottom:7px}
+.concept-title{font-size:.8rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.concept-desc{font-family:'Plus Jakarta Sans',sans-serif;font-size:.77rem;color:var(--muted);line-height:1.55}
+.concept-desc code{background:var(--surface);padding:1px 5px;border-radius:3px;color:var(--accent);font-size:.62rem}
+
+/* skill anatomy */
+.skill-anatomy{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden}
+.anatomy-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.anatomy-title{font-size:.78rem;font-weight:700;color:var(--text)}
+.anatomy-badge{font-family:'Fira Code',monospace;font-size:.6rem;background:rgba(79,255,176,.1);color:var(--accent);border:1px solid rgba(79,255,176,.2);padding:2px 8px;border-radius:99px}
+.anatomy-body{padding:14px 16px;display:flex;flex-direction:column;gap:5px}
+.anatomy-line{display:flex;align-items:baseline;gap:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.73rem;flex-wrap:wrap}
+.anatomy-blank{height:6px}
+.anat-sep{color:var(--muted);font-weight:700}
+.anat-key{color:var(--accent2);flex-shrink:0}
+.anat-val{color:var(--text)}
+.anat-body{color:var(--text2)}
+.anat-inject{color:var(--accent3)}
+.anat-comment{color:var(--muted);font-size:.63rem;font-style:italic}
+.skill-anatomy code{background:rgba(79,255,176,.08);padding:1px 5px;border-radius:3px;color:var(--accent);font-size:.68rem}
+
+/* inject list */
+.inject-list{display:flex;flex-direction:column;gap:7px}
+.inject-row{display:flex;gap:8px;align-items:center}
+.inject-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:.68rem;color:var(--accent3);flex-shrink:0;white-space:nowrap}
+.inject-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-size:.75rem;padding:7px 10px;outline:none;transition:border-color .2s;min-width:0}
+.inject-input:focus{border-color:rgba(255,199,0,.4);background:var(--surface)}
+.inject-input::placeholder{color:var(--muted);font-style:italic;opacity:.7}
+.inject-del{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;border-radius:4px;font-size:.85rem;transition:color .15s;flex-shrink:0}
+.inject-del:hover{color:var(--danger)}
+
+/* terminal steps */
+.terminal-steps{display:flex;flex-direction:column;gap:10px}
+.term-step{display:flex;gap:14px;align-items:flex-start}
+.term-step-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#0d0f14;font-size:.72rem;font-weight:800;display:grid;place-items:center;flex-shrink:0;margin-top:2px}
+.term-step-content{flex:1;min-width:0}
+.term-step-title{font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px}
+.term-codeblock{font-family:'Fira Code',monospace;font-size:.76rem;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:9px 13px;color:var(--accent);word-break:break-all;cursor:pointer;transition:background .15s;position:relative}
+.term-codeblock:hover{background:rgba(79,255,176,.05)}
+.term-codeblock::after{content:'copiar';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.58rem;color:var(--muted);opacity:0;transition:opacity .15s}
+.term-codeblock:hover::after{opacity:1}
+.term-step-note{font-family:'Plus Jakarta Sans',sans-serif;font-size:.76rem;color:var(--muted);margin-top:5px;line-height:1.55}
+.term-step-note code{background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--text2);font-size:.62rem}
+
+/* skill preview */
+#skill-preview-output{padding:18px 20px;font-family:'Fira Code',monospace;font-size:.76rem;line-height:1.8;color:var(--preview-c);white-space:pre-wrap;word-break:break-word;min-height:110px;max-height:360px;overflow-y:auto}
+#skill-preview-output::-webkit-scrollbar{width:4px}
+#skill-preview-output::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+#skill-preview-filename{font-size:.72rem!important;color:var(--muted)!important;font-family:'Fira Code',monospace;font-weight:400!important;text-transform:none!important;letter-spacing:0!important}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+<!-- HEADER -->
+<header>
+  <div class="logo-area">
+    <h1>Prompt <span>Engineer</span></h1>
+    <p>Ferramenta de Engenharia de Prompt · v3.0</p>
+  </div>
+  <div class="header-right">
+    <span class="badge">Pessoal · Hugo</span>
+    <button class="theme-btn" id="theme-btn" title="Alternar tema" onclick="toggleTheme()">🌙</button>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="mode-tabs">
+  <button class="tab-btn active" id="tab-gabarito" onclick="switchMode('gabarito')">
+    <span class="tab-icon">📋</span><span>Gabarito</span>
+  </button>
+  <button class="tab-btn" id="tab-steps" onclick="switchMode('steps')">
+    <span class="tab-icon">⚡</span><span>Etapas</span>
+  </button>
+  <button class="tab-btn" id="tab-proj" onclick="switchMode('proj')">
+    <span class="tab-icon">🗂️</span><span>Projeto Claude</span>
+  </button>
+  <button class="tab-btn" id="tab-skill" onclick="switchMode('skill')">
+    <span class="tab-icon">🧩</span><span>Criar Skill</span>
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANEL — GABARITO
+═══════════════════════════════════════ -->
+<div class="panel active" id="panel-gabarito">
+  <div class="section c-ctx">
+    <div class="section-header">
+      <div class="section-title"><div class="section-icon icon-ctx">🌐</div><div><h2>Contexto</h2><p>Situação, cenário ou background da tarefa</p></div></div>
+      <span class="char-count" id="cc-ctx">0 chars</span>
+    </div>
+    <textarea id="ctx" rows="3" placeholder="Ex: Estou criando conteúdo para o Instagram de um professor de futebol infantil em BH. O perfil é @prof.hugomarcello, com foco em crianças de 3 a 12 anos..."></textarea>
+  </div>
+
+  <div class="section c-pers">
+    <div class="section-header">
+      <div class="section-title"><div class="section-icon icon-pers">🎭</div><div><h2>Persona da IA</h2><p>Quem a IA deve ser? Especialidade, tom, estilo</p></div></div>
+      <span class="char-count" id="cc-pers">0 chars</span>
+    </div>
+    <textarea id="pers" rows="3" placeholder="Ex: Você é um especialista em marketing digital para pequenos negócios. Seu tom é direto, prático e encorajador. Evite jargões e linguagem corporativa..."></textarea>
+  </div>
+
+  <div class="section c-task">
+    <div class="section-header">
+      <div class="section-title"><div class="section-icon icon-task">⚡</div><div><h2>Tarefa &amp; Ações</h2><p>O que fazer e como fazer, passo a passo</p></div></div>
+      <span class="char-count" id="cc-task">0 chars</span>
+    </div>
+    <div class="subfields">
+      <div class="subfield"><label>Tarefa principal</label><textarea id="task-main" rows="2" placeholder="Ex: Crie um calendário editorial mensal com 12 posts para o Instagram..."></textarea></div>
+      <div class="subfield"><label>Ações / Passos específicos</label><textarea id="task-steps" rows="3" placeholder="Ex: 1. Analise o público-alvo&#10;2. Sugira 12 temas de posts&#10;3. Para cada tema, crie um título e uma legenda de até 150 caracteres..."></textarea></div>
+    </div>
+  </div>
+
+  <div class="section c-goal">
+    <div class="section-header">
+      <div class="section-title"><div class="section-icon icon-goal">🎯</div><div><h2>Objetivo</h2><p>Qual resultado precisa ser alcançado?</p></div></div>
+      <span class="char-count" id="cc-goal">0 chars</span>
+    </div>
+    <textarea id="goal" rows="3" placeholder="Ex: O objetivo é aumentar o engajamento do perfil e atrair novos pais interessados em aulas de futebol infantil em BH..."></textarea>
+  </div>
+
+  <div class="section c-fmt">
+    <div class="section-header">
+      <div class="section-title"><div class="section-icon icon-fmt">📐</div><div><h2>Formato de Resposta</h2><p>Estrutura, tamanho e estilo da saída</p></div></div>
+      <span class="char-count" id="cc-fmt">0 chars</span>
+    </div>
+    <textarea id="fmt" rows="3" placeholder="Ex: Responda em tópicos numerados. Use linguagem simples. Limite cada legenda a 150 caracteres..."></textarea>
+  </div>
+
+  <div class="section c-more">
+    <div class="section-header">
+      <div class="section-title"><div class="section-icon icon-more">🔧</div><div><h2>Outros / Restrições</h2><p>Contexto extra, exemplos, limitações</p></div></div>
+      <span class="char-count" id="cc-more">0 chars</span>
+    </div>
+    <textarea id="more" rows="3" placeholder="Ex: Não use jargões técnicos. Não repita informações. Meu público são pais de crianças de 3 a 12 anos em BH..."></textarea>
+  </div>
+
+  <div class="divider"></div>
+  <div class="preview-wrap">
+    <div class="preview-header"><h3>Preview do Prompt</h3><div class="preview-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div></div>
+    <div id="preview-output">Preencha os campos acima para visualizar o prompt aqui...</div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" onclick="copyPrompt('gabarito')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar Prompt
+    </button>
+    <button class="btn btn-secondary" onclick="downloadPrompt('gabarito')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar .txt
+    </button>
+    <button class="btn btn-secondary" onclick="livePreview()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Atualizar
+    </button>
+    <button class="btn btn-danger" onclick="clearGabarito()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>Limpar
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANEL — ETAPAS
+═══════════════════════════════════════ -->
+<div class="panel" id="panel-steps">
+  <div class="steps-info">
+    <strong>Como funciona:</strong> Cada etapa é um bloco do seu pedido. Ao final de cada etapa, você define uma <strong>Porta Lógica</strong> que controla o fluxo.<br><br>
+    <strong>IF</strong> → só executa se a condição for verdadeira &nbsp;|&nbsp; <strong>ELIF</strong> → alternativa ao IF &nbsp;|&nbsp; <strong>ELSE</strong> → executa se nenhuma condição anterior for verdadeira &nbsp;|&nbsp; <strong>AND</strong> → ambas as condições &nbsp;|&nbsp; <strong>OR</strong> → qualquer condição &nbsp;|&nbsp; <strong>NOT</strong> → nega a condição &nbsp;|&nbsp; <strong>STOP</strong> → encerra o fluxo
+  </div>
+  <div class="steps-toolbar">
+    <button class="btn btn-ghost btn-sm" onclick="addStep()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova Etapa
+    </button>
+    <button class="btn btn-secondary btn-sm" onclick="stepsLivePreview()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Atualizar Preview
+    </button>
+    <button class="btn btn-danger btn-sm" onclick="clearSteps()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Limpar Tudo
+    </button>
+  </div>
+  <div id="steps-list"></div>
+  <div class="divider"></div>
+  <div class="preview-wrap">
+    <div class="preview-header"><h3>Preview — Prompt em Etapas</h3><div class="preview-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div></div>
+    <div id="steps-preview-output">Adicione etapas acima para visualizar o prompt aqui...</div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" onclick="copyPrompt('steps')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar Prompt
+    </button>
+    <button class="btn btn-secondary" onclick="downloadPrompt('steps')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar .txt
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PANEL — PROJETO CLAUDE
+═══════════════════════════════════════ -->
+<div class="panel" id="panel-proj">
+
+  <!-- progress bar -->
+  <div class="progress-bar-wrap"><div class="progress-bar" id="proj-progress" style="width:20%"></div></div>
+
+  <!-- wizard nav -->
+  <div class="wizard-nav" id="wiz-nav">
+    <!-- generated by JS -->
+  </div>
+
+  <!-- ── WIZ STEP 1: Visão Geral ── -->
+  <div class="wiz-panel active" id="wiz-1">
+    <div class="tip-box">
+      <strong>🗺️ Etapa 1 de 5 — Visão Geral do Projeto</strong><br>
+      Defina o nome, a ideia central e o propósito do seu projeto. Isso será o "norte" que a IA usará em todas as conversas dentro deste projeto no Claude.
+    </div>
+
+    <div class="section c-proj">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-proj">📌</div><div><h2>Nome do Projeto</h2><p>Como você vai chamar este projeto?</p></div></div>
+      </div>
+      <input type="text" id="proj-name" placeholder="Ex: Personal Soccer BH · Instagram · Marketing · Finanças Pessoais..."/>
+    </div>
+
+    <div class="section c-proj">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-proj">💡</div><div><h2>Ideia Central</h2><p>Em uma frase: o que é este projeto?</p></div></div>
+        <span class="char-count" id="cc-proj-idea">0 chars</span>
+      </div>
+      <textarea id="proj-idea" rows="2" placeholder="Ex: Criar e gerenciar conteúdo profissional para o Instagram @prof.hugomarcello, professor de futebol infantil em BH..."></textarea>
+    </div>
+
+    <div class="section c-proj">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-proj">🎯</div><div><h2>Propósito / Objetivo Principal</h2><p>O que você quer conquistar com este projeto?</p></div></div>
+        <span class="char-count" id="cc-proj-purpose">0 chars</span>
+      </div>
+      <textarea id="proj-purpose" rows="3" placeholder="Ex: Crescer seguidores, aumentar engajamento e converter pais interessados em alunos pagantes para as aulas de futebol infantil..."></textarea>
+    </div>
+
+    <div class="section c-proj">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-proj">🏷️</div><div><h2>Categoria / Área</h2><p>Qual área este projeto pertence?</p></div></div>
+      </div>
+      <div class="radio-group" id="proj-category">
+        <label class="radio-opt" onclick="selectRadio('proj-category',this)"><input type="radio" name="proj-cat" value="Marketing Digital"/>📱 Marketing Digital</label>
+        <label class="radio-opt" onclick="selectRadio('proj-category',this)"><input type="radio" name="proj-cat" value="Educação / Ensino"/>⚽ Educação / Ensino</label>
+        <label class="radio-opt" onclick="selectRadio('proj-category',this)"><input type="radio" name="proj-cat" value="Finanças"/>💰 Finanças</label>
+        <label class="radio-opt" onclick="selectRadio('proj-category',this)"><input type="radio" name="proj-cat" value="Programação / Tech"/>💻 Programação / Tech</label>
+        <label class="radio-opt" onclick="selectRadio('proj-category',this)"><input type="radio" name="proj-cat" value="Negócio / Empreendimento"/>🏢 Negócio</label>
+        <label class="radio-opt" onclick="selectRadio('proj-category',this)"><input type="radio" name="proj-cat" value="Pessoal"/>🙋 Pessoal</label>
+        <label class="radio-opt" onclick="selectRadio('proj-category',this)"><input type="radio" name="proj-cat" value="Outro"/>🔧 Outro</label>
+      </div>
+    </div>
+
+    <div class="wiz-actions">
+      <span></span>
+      <button class="btn btn-primary btn-sm" onclick="wizGo(2)">Próximo: Persona &amp; Contexto →</button>
+    </div>
+  </div>
+
+  <!-- ── WIZ STEP 2: Persona & Contexto ── -->
+  <div class="wiz-panel" id="wiz-2">
+    <div class="tip-box blue">
+      <strong>🎭 Etapa 2 de 5 — Persona &amp; Contexto Fixo</strong><br>
+      Defina como a IA deve se comportar <em>sempre</em> que você abrir uma conversa dentro deste projeto. Este é o "system prompt" que fica salvo no projeto do Claude.
+    </div>
+
+    <div class="section c-pers">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-pers">🎭</div><div><h2>Persona da IA</h2><p>Especialidade, tom, estilo e postura</p></div></div>
+        <span class="char-count" id="cc-proj-persona">0 chars</span>
+      </div>
+      <textarea id="proj-persona" rows="4" placeholder="Ex: Você é um especialista em marketing digital para profissionais autônomos de esportes. Seu tom é direto, prático e encorajador. Usa linguagem simples, sem jargões. Sempre oferece exemplos concretos..."></textarea>
+      <div class="tip-box" style="margin-top:10px">
+        <strong>💡 Dica:</strong> Quanto mais específico você for aqui, mais consistente será o comportamento da IA em todas as conversas do projeto.
+      </div>
+    </div>
+
+    <div class="section c-ctx">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-ctx">🌐</div><div><h2>Contexto Fixo</h2><p>O que a IA sempre deve saber sobre você e o projeto</p></div></div>
+        <span class="char-count" id="cc-proj-ctx">0 chars</span>
+      </div>
+      <textarea id="proj-ctx" rows="5" placeholder="Ex: Meu nome é Hugo. Sou professor de futebol infantil (Personal Soccer) em BH/MG. Atendo 25 alunos de 3 a 12 anos em 9 locais. Meu Instagram é @prof.hugomarcello. Meu público são pais e mães de crianças. Faturamento atual: ~R$1.000/mês. Meta: R$4.000/mês..."></textarea>
+    </div>
+
+    <div class="section c-ctx">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-ctx">🚫</div><div><h2>O que a IA NUNCA deve fazer</h2><p>Restrições e comportamentos proibidos</p></div></div>
+        <span class="char-count" id="cc-proj-never">0 chars</span>
+      </div>
+      <textarea id="proj-never" rows="3" placeholder="Ex: Nunca usar linguagem formal demais. Nunca sugerir estratégias pagas sem avisar o custo. Nunca ignorar o contexto de BH/MG. Nunca criar conteúdo genérico sem personalização..."></textarea>
+    </div>
+
+    <div class="wiz-actions">
+      <button class="btn btn-secondary btn-sm" onclick="wizGo(1)">← Voltar</button>
+      <button class="btn btn-primary btn-sm" onclick="wizGo(3)">Próximo: Público &amp; Tom →</button>
+    </div>
+  </div>
+
+  <!-- ── WIZ STEP 3: Público & Tom ── -->
+  <div class="wiz-panel" id="wiz-3">
+    <div class="tip-box gold">
+      <strong>👥 Etapa 3 de 5 — Público-Alvo &amp; Tom de Comunicação</strong><br>
+      Defina para quem a IA deve escrever e qual o estilo de linguagem ideal. Isso garante que cada resposta já saia no tom certo para o seu público.
+    </div>
+
+    <div class="section c-goal">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-goal">👥</div><div><h2>Público-Alvo</h2><p>Quem vai receber ou ler o conteúdo gerado?</p></div></div>
+        <span class="char-count" id="cc-proj-audience">0 chars</span>
+      </div>
+      <textarea id="proj-audience" rows="3" placeholder="Ex: Pais e mães de crianças de 3 a 12 anos em BH/MG, classe média, interessados em atividades esportivas para os filhos. Buscam desenvolvimento motor, socialização e disciplina..."></textarea>
+    </div>
+
+    <div class="section c-goal">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-goal">🗣️</div><div><h2>Tom de Voz</h2><p>Como a comunicação deve soar?</p></div></div>
+      </div>
+      <div class="radio-group" id="proj-tone">
+        <label class="radio-opt" onclick="selectRadio('proj-tone',this)"><input type="radio" name="proj-tone" value="Amigável e acolhedor"/>🤝 Amigável</label>
+        <label class="radio-opt" onclick="selectRadio('proj-tone',this)"><input type="radio" name="proj-tone" value="Profissional e confiável"/>💼 Profissional</label>
+        <label class="radio-opt" onclick="selectRadio('proj-tone',this)"><input type="radio" name="proj-tone" value="Motivador e energético"/>🔥 Motivador</label>
+        <label class="radio-opt" onclick="selectRadio('proj-tone',this)"><input type="radio" name="proj-tone" value="Educativo e informativo"/>📚 Educativo</label>
+        <label class="radio-opt" onclick="selectRadio('proj-tone',this)"><input type="radio" name="proj-tone" value="Direto e objetivo"/>⚡ Direto</label>
+        <label class="radio-opt" onclick="selectRadio('proj-tone',this)"><input type="radio" name="proj-tone" value="Descontraído e divertido"/>😄 Descontraído</label>
+      </div>
+    </div>
+
+    <div class="section c-goal">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-goal">🏷️</div><div><h2>Palavras-chave do Projeto</h2><p>Termos importantes que a IA deve conhecer e usar</p></div></div>
+      </div>
+      <div class="tags-wrap" id="tags-wrap" onclick="document.getElementById('tags-input').focus()">
+        <input class="tags-input" id="tags-input" type="text" placeholder="Digite e pressione Enter para adicionar..."/>
+      </div>
+    </div>
+
+    <div class="wiz-actions">
+      <button class="btn btn-secondary btn-sm" onclick="wizGo(2)">← Voltar</button>
+      <button class="btn btn-primary btn-sm" onclick="wizGo(4)">Próximo: Formato &amp; Entregáveis →</button>
+    </div>
+  </div>
+
+  <!-- ── WIZ STEP 4: Formato & Entregáveis ── -->
+  <div class="wiz-panel" id="wiz-4">
+    <div class="tip-box purple">
+      <strong>📐 Etapa 4 de 5 — Formato de Saída &amp; Entregáveis</strong><br>
+      Configure como a IA deve formatar as respostas por padrão neste projeto e quais tipos de entregas são esperadas.
+    </div>
+
+    <div class="section c-fmt">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-fmt">📐</div><div><h2>Formato Padrão de Resposta</h2><p>Como as respostas devem ser estruturadas</p></div></div>
+        <span class="char-count" id="cc-proj-fmt">0 chars</span>
+      </div>
+      <textarea id="proj-fmt" rows="3" placeholder="Ex: Sempre use tópicos numerados. Respostas objetivas, máximo 300 palavras por entrega. Separe seções com títulos em negrito. Use emojis com moderação..."></textarea>
+    </div>
+
+    <div class="section c-fmt">
+      <div class="section-header">
+        <div class="section-title"><div class="section-icon icon-fmt">📦</div><div><h2>Entregáveis Esperados</h2><p>Quais tipos de conteúdo/saída este projeto vai gerar?</p></div></div>
+      </div>
+      <div class="checklist" id="proj-deliverables">
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Posts para Instagram (legendas, títulos, CTAs)<span class="check-tip">Conteúdo pronto para publicar nas redes sociais</span></div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Estratégia e planejamento de conteúdo<span class="check-tip">Calendários editoriais, temas, pautas mensais</span></div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Textos de comunicação com clientes<span class="check-tip">Mensagens WhatsApp, e-mails, respostas para pais</span></div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Análises e relatórios<span class="check-tip">Resumos de desempenho, análises de métricas</span></div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Código / scripts / automações<span class="check-tip">Sites, planilhas, ferramentas digitais</span></div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Planos de aula / metodologia<span class="check-tip">Conteúdo pedagógico para as aulas de futebol</span></div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Ideias e brainstorm<span class="check-tip">Geração de ideias, exploração de possibilidades</span></div></div>
+        <div class="check-item" onclick="toggleCheck(this)"><div class="check-box"><span class="check-icon">✓</span></div><div class="check-text">Outros (especificar no campo abaixo)<span class="check-tip"></span></div></div>
+      </div>
+      <textarea id="proj-deliverables-extra" rows="2" style="margin-top:10px" placeholder="Outros entregáveis não listados acima..."></textarea>
+    </div>
+
+    <div class="wiz-actions">
+      <button class="btn btn-secondary btn-sm" onclick="wizGo(3)">← Voltar</button>
+      <button class="btn btn-primary btn-sm" onclick="wizGo(5)">Próximo: Revisão Final →</button>
+    </div>
+  </div>
+
+  <!-- ── WIZ STEP 5: Revisão & Geração ── -->
+  <div class="wiz-panel" id="wiz-5">
+    <div class="tip-box">
+      <strong>✅ Etapa 5 de 5 — Revisão &amp; Geração do Prompt</strong><br>
+      Confira o resumo do seu projeto abaixo. Quando estiver satisfeito, gere o prompt completo pronto para copiar no campo <strong>Instruções do Projeto</strong> no Claude.
+    </div>
+
+    <div class="summary-card" id="proj-summary">
+      <div class="summary-row"><span class="summary-key">📌 Nome:</span><span class="summary-val" id="sum-name">—</span></div>
+      <div class="summary-row"><span class="summary-key">💡 Ideia central:</span><span class="summary-val" id="sum-idea">—</span></div>
+      <div class="summary-row"><span class="summary-key">🎯 Propósito:</span><span class="summary-val" id="sum-purpose">—</span></div>
+      <div class="summary-row"><span class="summary-key">🏷️ Categoria:</span><span class="summary-val" id="sum-category">—</span></div>
+      <div class="summary-row"><span class="summary-key">🎭 Persona:</span><span class="summary-val" id="sum-persona">—</span></div>
+      <div class="summary-row"><span class="summary-key">🌐 Contexto fixo:</span><span class="summary-val" id="sum-ctx">—</span></div>
+      <div class="summary-row"><span class="summary-key">👥 Público-alvo:</span><span class="summary-val" id="sum-audience">—</span></div>
+      <div class="summary-row"><span class="summary-key">🗣️ Tom de voz:</span><span class="summary-val" id="sum-tone">—</span></div>
+      <div class="summary-row"><span class="summary-key">🏷️ Palavras-chave:</span><span class="summary-val" id="sum-tags">—</span></div>
+      <div class="summary-row"><span class="summary-key">📐 Formato padrão:</span><span class="summary-val" id="sum-fmt">—</span></div>
+    </div>
+
+    <div class="tip-box blue" style="margin-bottom:14px">
+      <strong>Como usar:</strong> Copie o prompt gerado → abra o Claude → crie um novo Projeto → cole no campo <strong>"Instruções do Projeto"</strong>. Todas as conversas dentro deste projeto terão este contexto automaticamente.
+    </div>
+
+    <div class="preview-wrap">
+      <div class="preview-header"><h3>Prompt do Projeto — Pronto para o Claude</h3><div class="preview-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div></div>
+      <div id="proj-preview-output">Clique em "Gerar Prompt do Projeto" para visualizar aqui...</div>
+    </div>
+
+    <div class="wiz-actions">
+      <button class="btn btn-secondary btn-sm" onclick="wizGo(4)">← Voltar</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="buildAndPreviewProj()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Gerar Preview
+        </button>
+        <button class="btn btn-primary" onclick="copyPrompt('proj')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar Prompt
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadPrompt('proj')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar .txt
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="clearProj()">Limpar</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panel-proj -->
+
+<!-- ═══════════════════════════════════════
+     PANEL — CRIAR SKILL
+═══════════════════════════════════════ -->
+<div class="panel" id="panel-skill">
+
+  <!-- Skill type selector -->
+  <div class="skill-type-wrap">
+    <div class="skill-type-btn active" id="stype-code" onclick="setSkillType('code')">
+      <span class="skill-type-icon">💻</span>
+      <div>
+        <div class="skill-type-title">Skill para Claude Code</div>
+        <div class="skill-type-sub">Arquivo SKILL.md · Terminal · Reutilizável</div>
+      </div>
+    </div>
+    <div class="skill-type-btn" id="stype-web" onclick="setSkillType('web')">
+      <span class="skill-type-icon">🌐</span>
+      <div>
+        <div class="skill-type-title">Skill para Claude.ai</div>
+        <div class="skill-type-sub">Projeto no site · Sem terminal · Mais simples</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SKILL CODE WIZARD ── -->
+  <div id="skill-code-panel">
+
+    <!-- progress -->
+    <div class="progress-bar-wrap" style="margin-top:18px"><div class="progress-bar" id="skill-progress" style="width:25%"></div></div>
+    <!-- wizard nav -->
+    <div class="wizard-nav" id="skill-wiz-nav"></div>
+
+    <!-- STEP 1 — O que é uma Skill -->
+    <div class="skill-wiz-panel active" id="skill-wiz-1">
+      <div class="tip-box">
+        <strong>🧩 O que é uma Skill no Claude Code?</strong><br>
+        Uma Skill é um arquivo <code>SKILL.md</code> dentro de uma pasta específica. Quando você abre o Claude Code no terminal, ele lê essa pasta e adiciona a skill ao seu conjunto de ferramentas automáticas. Você pode invocar uma skill digitando <code>/nome-da-skill</code> ou deixar o Claude usá-la automaticamente quando detectar que é necessário.
+      </div>
+
+      <div class="skill-concept-grid">
+        <div class="concept-card">
+          <div class="concept-icon">🔁</div>
+          <div class="concept-title">Reutilizável</div>
+          <div class="concept-desc">Crie uma vez e use em todos os seus projetos, sem copiar e colar prompts repetidamente</div>
+        </div>
+        <div class="concept-card">
+          <div class="concept-icon">📂</div>
+          <div class="concept-title">Por arquivo</div>
+          <div class="concept-desc">É só um arquivo de texto com instruções. Nada de código complexo ou configurações difíceis</div>
+        </div>
+        <div class="concept-card">
+          <div class="concept-icon">⚡</div>
+          <div class="concept-title">Automática</div>
+          <div class="concept-desc">O Claude decide quando usar com base na descrição, ou você chama com <code>/nome</code></div>
+        </div>
+        <div class="concept-card">
+          <div class="concept-icon">🌍</div>
+          <div class="concept-title">Open standard</div>
+          <div class="concept-desc">Segue o padrão AgentSkills.io — funciona também em outras ferramentas de IA</div>
+        </div>
+      </div>
+
+      <div class="tip-box gold" style="margin-top:14px">
+        <strong>🗂️ Onde ficam as skills?</strong><br>
+        <strong style="color:var(--accent)">Pessoal:</strong> <code>~/.claude/skills/nome-da-skill/SKILL.md</code> → disponível em todos os seus projetos<br>
+        <strong style="color:var(--accent2)">Por projeto:</strong> <code>.claude/skills/nome-da-skill/SKILL.md</code> → só neste projeto (compartilhável via git)<br>
+        <strong style="color:var(--accent4)">Empresa:</strong> gerenciado pelo administrador → todos os usuários da organização
+      </div>
+
+      <div class="tip-box blue" style="margin-top:10px">
+        <strong>💡 Quando criar uma Skill?</strong><br>
+        Quando você perceber que está copiando e colando o mesmo prompt mais de 2 vezes. Se virou rotina, vira Skill.
+      </div>
+
+      <div class="wiz-actions"><span></span>
+        <button class="btn btn-primary btn-sm" onclick="skillWizGo(2)">Próximo: Estrutura do arquivo →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 — Estrutura -->
+    <div class="skill-wiz-panel" id="skill-wiz-2">
+      <div class="tip-box blue">
+        <strong>📄 Etapa 2 — Estrutura do SKILL.md</strong><br>
+        Todo arquivo SKILL.md tem duas partes obrigatórias separadas por <code>---</code>. Entender essa estrutura é o único requisito técnico para criar uma skill.
+      </div>
+
+      <div class="skill-anatomy">
+        <div class="anatomy-header">
+          <span class="anatomy-title">📄 Estrutura do SKILL.md</span>
+          <span class="anatomy-badge">Gabarito</span>
+        </div>
+        <div class="anatomy-body">
+          <div class="anatomy-line"><span class="anat-sep">---</span><span class="anat-comment"># ← início do frontmatter (obrigatório)</span></div>
+          <div class="anatomy-line"><span class="anat-key">name:</span> <span class="anat-val">nome-da-skill</span><span class="anat-comment"># nome exibido nas listagens (opcional)</span></div>
+          <div class="anatomy-line"><span class="anat-key">description:</span> <span class="anat-val">O que faz e quando usar. Ex: Use quando...</span><span class="anat-comment"># ⚠️ CRÍTICO — é o que o Claude lê para decidir se usa</span></div>
+          <div class="anatomy-line"><span class="anat-key">disable-model-invocation:</span> <span class="anat-val">false</span><span class="anat-comment"># true = só você invoca com /nome (não automático)</span></div>
+          <div class="anatomy-line"><span class="anat-sep">---</span><span class="anat-comment"># ← fim do frontmatter</span></div>
+          <div class="anatomy-line anatomy-blank"></div>
+          <div class="anatomy-line"><span class="anat-body">## Instruções</span><span class="anat-comment"># ← aqui vão as instruções em markdown</span></div>
+          <div class="anatomy-line"><span class="anat-body">Faça X, depois Y, depois Z...</span></div>
+          <div class="anatomy-line anatomy-blank"></div>
+          <div class="anatomy-line"><span class="anat-inject">!`comando-do-terminal`</span><span class="anat-comment"># ← injeta saída de comando em tempo real (opcional)</span></div>
+        </div>
+      </div>
+
+      <div class="tip-box" style="margin-top:14px">
+        <strong>🔑 O campo <code>description</code> é o mais importante.</strong><br>
+        É ele que o Claude lê para decidir se vai usar a skill automaticamente. Seja específico: coloque casos de uso, gatilhos, e exemplos de quando usar. Ex: <em>"Use quando o usuário perguntar sobre mudanças no git, quiser um commit message, ou pedir para revisar o diff."</em>
+      </div>
+
+      <div class="tip-box gold" style="margin-top:10px">
+        <strong>⚡ Injeção dinâmica de contexto (<code>!`comando`</code>)</strong><br>
+        Antes de o Claude ver o conteúdo da skill, o Claude Code executa o comando e substitui a linha pelo resultado. Assim a skill já chega com dados reais — não chutes. Ex: <code>!`git diff HEAD`</code>, <code>!`cat package.json`</code>, <code>!`ls src/`</code>
+      </div>
+
+      <div class="wiz-actions">
+        <button class="btn btn-secondary btn-sm" onclick="skillWizGo(1)">← Voltar</button>
+        <button class="btn btn-primary btn-sm" onclick="skillWizGo(3)">Próximo: Construir sua Skill →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 — Builder -->
+    <div class="skill-wiz-panel" id="skill-wiz-3">
+      <div class="tip-box purple">
+        <strong>🔨 Etapa 3 — Construa sua Skill</strong><br>
+        Preencha os campos abaixo. O arquivo SKILL.md será gerado automaticamente no preview.
+      </div>
+
+      <div class="section c-proj">
+        <div class="section-header">
+          <div class="section-title"><div class="section-icon icon-proj">📌</div><div><h2>Nome da Skill</h2><p>Será o comando: /nome-da-skill</p></div></div>
+        </div>
+        <input type="text" id="skill-name" placeholder="Ex: resumir-changes · revisar-post · plano-aula · post-instagram" oninput="skillLivePreview()"/>
+        <div class="tip-box" style="margin-top:10px;font-size:.63rem">Use letras minúsculas e hífens. Sem espaços. Este será o comando que você digita no terminal.</div>
+      </div>
+
+      <div class="section c-goal">
+        <div class="section-header">
+          <div class="section-title"><div class="section-icon icon-goal">🎯</div><div><h2>Description</h2><p>Quando o Claude deve usar esta skill? (campo mais importante)</p></div></div>
+          <span class="char-count" id="cc-skill-desc">0 chars</span>
+        </div>
+        <textarea id="skill-desc" rows="3" placeholder="Ex: Use quando o usuário pedir para criar um post para o Instagram, sugerir conteúdo para redes sociais, ou pedir ideias de legenda para foto de futebol infantil..." oninput="updateCC(this,'cc-skill-desc');skillLivePreview()"></textarea>
+      </div>
+
+      <div class="section c-task">
+        <div class="section-header">
+          <div class="section-title"><div class="section-icon icon-task">⚡</div><div><h2>Instruções da Skill</h2><p>O que o Claude deve fazer quando esta skill rodar?</p></div></div>
+          <span class="char-count" id="cc-skill-body">0 chars</span>
+        </div>
+        <textarea id="skill-body" rows="8" placeholder="Ex:&#10;## Instruções&#10;&#10;Crie um post para o Instagram seguindo estas regras:&#10;1. Título chamativo de até 10 palavras&#10;2. Legenda de até 150 caracteres&#10;3. Tom amigável e motivador para pais de crianças&#10;4. Inclua 3 a 5 hashtags relevantes&#10;5. Finalize com uma CTA (convite para ação)&#10;&#10;Contexto do perfil: @prof.hugomarcello, professor de futebol infantil em BH." oninput="updateCC(this,'cc-skill-body');skillLivePreview()"></textarea>
+      </div>
+
+      <div class="section c-ctx">
+        <div class="section-header">
+          <div class="section-title"><div class="section-icon icon-ctx">💉</div><div><h2>Injeção Dinâmica (opcional)</h2><p>Comandos de terminal para injetar contexto em tempo real</p></div></div>
+        </div>
+        <div class="inject-list" id="inject-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addInject()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Adicionar comando
+        </button>
+        <div class="tip-box" style="margin-top:10px;font-size:.63rem">Exemplos: <code>git diff HEAD</code> · <code>cat package.json</code> · <code>ls src/</code> · <code>date</code> · <code>pwd</code></div>
+      </div>
+
+      <div class="section c-fmt">
+        <div class="section-header">
+          <div class="section-title"><div class="section-icon icon-fmt">⚙️</div><div><h2>Configurações avançadas</h2><p>Opcional — comportamento da skill</p></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <label class="field-label">Escopo da Skill</label>
+            <div class="radio-group" id="skill-scope">
+              <label class="radio-opt selected" onclick="selectRadio('skill-scope',this)"><input type="radio" name="skill-scope" value="personal" checked/>👤 Pessoal (~/.claude/skills/)</label>
+              <label class="radio-opt" onclick="selectRadio('skill-scope',this)"><input type="radio" name="skill-scope" value="project"/>📁 Por projeto (.claude/skills/)</label>
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Invocação</label>
+            <div class="radio-group" id="skill-invocation">
+              <label class="radio-opt selected" onclick="selectRadio('skill-invocation',this);skillLivePreview()"><input type="radio" name="skill-inv" value="false" checked/>🤖 Automática + Manual (/nome)</label>
+              <label class="radio-opt" onclick="selectRadio('skill-invocation',this);skillLivePreview()"><input type="radio" name="skill-inv" value="true"/>🔒 Só Manual (/nome)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wiz-actions">
+        <button class="btn btn-secondary btn-sm" onclick="skillWizGo(2)">← Voltar</button>
+        <button class="btn btn-primary btn-sm" onclick="skillWizGo(4)">Próximo: Instalar e Usar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 — Instalar e Usar -->
+    <div class="skill-wiz-panel" id="skill-wiz-4">
+      <div class="tip-box">
+        <strong>🚀 Etapa 4 — Instalar e Usar a Skill</strong><br>
+        Sua skill está pronta! Agora veja como instalá-la e testá-la no terminal.
+      </div>
+
+      <!-- terminal steps -->
+      <div class="terminal-steps">
+
+        <div class="term-step">
+          <div class="term-step-num">1</div>
+          <div class="term-step-content">
+            <div class="term-step-title">Crie a pasta da skill</div>
+            <div class="term-codeblock" id="term-mkdir">mkdir -p ~/.claude/skills/minha-skill</div>
+            <div class="term-step-note">Substitua <code>minha-skill</code> pelo nome que você definiu. Para skill de projeto: use <code>.claude/skills/</code> na raiz do projeto.</div>
+          </div>
+        </div>
+
+        <div class="term-step">
+          <div class="term-step-num">2</div>
+          <div class="term-step-content">
+            <div class="term-step-title">Crie o arquivo SKILL.md</div>
+            <div class="term-codeblock" id="term-touch">touch ~/.claude/skills/minha-skill/SKILL.md</div>
+            <div class="term-step-note">Abra o arquivo em qualquer editor de texto (VS Code, Notepad, nano) e cole o conteúdo gerado no preview abaixo.</div>
+          </div>
+        </div>
+
+        <div class="term-step">
+          <div class="term-step-num">3</div>
+          <div class="term-step-content">
+            <div class="term-step-title">Abra o Claude Code</div>
+            <div class="term-codeblock">claude</div>
+            <div class="term-step-note">Se o Claude Code já está aberto, não precisa reiniciar — ele detecta mudanças nas skills automaticamente em tempo real.</div>
+          </div>
+        </div>
+
+        <div class="term-step">
+          <div class="term-step-num">4</div>
+          <div class="term-step-content">
+            <div class="term-step-title">Teste a skill</div>
+            <div class="term-codeblock" id="term-invoke">/minha-skill</div>
+            <div class="term-step-note">Ou deixe o Claude invocar automaticamente fazendo uma pergunta que case com a descrição da sua skill.</div>
+          </div>
+        </div>
+
+        <div class="term-step">
+          <div class="term-step-num">5</div>
+          <div class="term-step-content">
+            <div class="term-step-title">Liste todas as suas skills</div>
+            <div class="term-codeblock">claude --list-skills</div>
+            <div class="term-step-note">Ou dentro de uma sessão Claude Code, use <code>/skills</code> para ver todas as skills carregadas.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- preview final -->
+      <div class="preview-wrap">
+        <div class="preview-header">
+          <h3 id="skill-preview-filename">📄 ~/.claude/skills/minha-skill/SKILL.md</h3>
+          <div class="preview-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        </div>
+        <div id="skill-preview-output">Preencha os campos na etapa anterior para gerar o SKILL.md aqui...</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" onclick="copyPrompt('skill')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiar SKILL.md
+        </button>
+        <button class="btn btn-secondary" onclick="downloadPrompt('skill')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar SKILL.md
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="skillWizGo(3)">← Editar</button>
+      </div>
+
+      <div class="wiz-actions" style="margin-top:14px">
+        <button class="btn btn-secondary btn-sm" onclick="skillWizGo(3)">← Voltar</button>
+        <span></span>
+      </div>
+    </div>
+
+  </div><!-- /skill-code-panel -->
+
+  <!-- ── SKILL WEB (Claude.ai) ── -->
+  <div id="skill-web-panel" style="display:none;margin-top:18px">
+    <div class="tip-box blue">
+      <strong>🌐 Skills no Claude.ai (sem terminal)</strong><br>
+      No Claude.ai, não existe o conceito de "Skill" como arquivo. O equivalente é usar as <strong>Instruções do Projeto</strong> — um texto fixo que o Claude sempre lê antes de cada conversa dentro daquele projeto. Use a aba <strong>🗂️ Projeto Claude</strong> desta ferramenta para montar esse prompt.
+    </div>
+
+    <div class="skill-concept-grid" style="margin-top:14px">
+      <div class="concept-card">
+        <div class="concept-icon">📋</div>
+        <div class="concept-title">Aba Gabarito</div>
+        <div class="concept-desc">Para prompts pontuais e únicos, sem contexto fixo</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">🗂️</div>
+        <div class="concept-title">Aba Projeto Claude</div>
+        <div class="concept-desc">Para contexto persistente que a IA sempre deve lembrar — o equivalente a uma Skill no Claude.ai</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">⚡</div>
+        <div class="concept-title">Aba Etapas</div>
+        <div class="concept-desc">Para fluxos condicionais com portas lógicas, onde a IA segue passos definidos</div>
+      </div>
+      <div class="concept-card">
+        <div class="concept-icon">💻</div>
+        <div class="concept-title">Claude Code</div>
+        <div class="concept-desc">Instale o Claude Code no terminal para usar Skills reais como arquivos SKILL.md reutilizáveis</div>
+      </div>
+    </div>
+
+    <div class="tip-box gold" style="margin-top:14px">
+      <strong>🔗 Como instalar o Claude Code:</strong><br>
+      1. Tenha Node.js instalado no seu computador<br>
+      2. No terminal: <code>npm install -g @anthropic-ai/claude-code</code><br>
+      3. Autentique: <code>claude</code> (abre o navegador para login)<br>
+      4. Pronto — agora você pode criar Skills de verdade! Volte para a opção <strong>Claude Code</strong> acima.
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="switchMode('proj')">Ir para Aba Projeto Claude →</button>
+      <button class="btn btn-ghost btn-sm" onclick="setSkillType('code')">Criar Skill para Claude Code</button>
+    </div>
+  </div>
+
+</div><!-- /panel-skill -->
+
+<footer><p>Prompt Engineer · Ferramenta pessoal · Hugo Marcello · 2026</p></footer>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════
+   THEME
+═══════════════════════════════════════ */
+let isDark = true;
+function toggleTheme(){
+  isDark=!isDark;
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  document.getElementById('theme-btn').textContent=isDark?'🌙':'☀️';
+  localStorage.setItem('pe-theme',isDark?'dark':'light');
+}
+(function(){
+  const s=localStorage.getItem('pe-theme');
+  if(s==='light'){isDark=false;document.documentElement.setAttribute('data-theme','light');document.getElementById('theme-btn').textContent='☀️';}
+})();
+
+/* ═══════════════════════════════════════
+   TABS
+═══════════════════════════════════════ */
+let currentMode='gabarito';
+function switchMode(m){
+  currentMode=m;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+m).classList.add('active');
+  document.getElementById('panel-'+m).classList.add('active');
+}
+
+/* ═══════════════════════════════════════
+   GABARITO
+═══════════════════════════════════════ */
+const gF={
+  ctx:{id:'ctx',cc:'cc-ctx'},pers:{id:'pers',cc:'cc-pers'},
+  taskMain:{id:'task-main',cc:'cc-task'},taskSteps:{id:'task-steps',cc:'cc-task'},
+  goal:{id:'goal',cc:'cc-goal'},fmt:{id:'fmt',cc:'cc-fmt'},more:{id:'more',cc:'cc-more'}
+};
+window.addEventListener('DOMContentLoaded',()=>{
+  Object.values(gF).forEach(f=>{
+    const el=document.getElementById(f.id);
+    if(!el)return;
+    el.addEventListener('input',()=>{updateCC(el,f.cc);livePreview();});
+  });
+  livePreview();
+  addStep();
+  initWizNav();
+  initTagsInput();
+  // proj field live sync
+  ['proj-idea','proj-purpose','proj-persona','proj-ctx','proj-never','proj-audience','proj-fmt'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input',()=>{updateCC(el,'cc-'+id);});
+  });
+});
+
+function updateCC(el,id){
+  const c=document.getElementById(id);
+  if(!c)return;
+  const n=el.value.length;
+  c.textContent=n+' chars';
+  c.style.color=n>800?'var(--accent3)':'';
+}
+
+function buildGabaritoPrompt(){
+  const get=id=>document.getElementById(id)?document.getElementById(id).value:'';
+  const parts=[];
+  const add=(l,v)=>{const t=v.trim();if(t)parts.push('## '+l+'\n'+t);};
+  add('CONTEXTO',get('ctx'));
+  add('PERSONA DA IA',get('pers'));
+  const tm=get('task-main').trim(),ts=get('task-steps').trim();
+  if(tm||ts){let b=tm;if(ts)b+=(tm?'\n\n':'')+ts;parts.push('## TAREFA & AÇÕES\n'+b);}
+  add('OBJETIVO',get('goal'));
+  add('FORMATO DE RESPOSTA',get('fmt'));
+  add('OUTROS / RESTRIÇÕES',get('more'));
+  return parts.join('\n\n---\n\n');
+}
+
+function livePreview(){
+  const raw=buildGabaritoPrompt();
+  const el=document.getElementById('preview-output');
+  if(!raw){el.innerHTML='<span style="color:var(--muted);font-style:italic">Preencha os campos acima para visualizar o prompt aqui...</span>';return;}
+  const e=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  el.innerHTML=e
+    .replace(/(## CONTEXTO)/g,'<span class="tag-blue">$1</span>')
+    .replace(/(## PERSONA DA IA)/g,'<span class="tag-purple">$1</span>')
+    .replace(/(## TAREFA &amp; AÇÕES)/g,'<span class="tag-green">$1</span>')
+    .replace(/(## OBJETIVO)/g,'<span class="tag-gold">$1</span>')
+    .replace(/(## FORMATO DE RESPOSTA)/g,'<span class="tag-purple">$1</span>')
+    .replace(/(## OUTROS \/ RESTRIÇÕES)/g,'<span class="tag-red">$1</span>')
+    .replace(/(---)/g,'<span class="tag-muted">$1</span>');
+}
+
+function clearGabarito(){
+  if(!confirm('Limpar todos os campos?'))return;
+  Object.values(gF).forEach(f=>{const el=document.getElementById(f.id);if(el)el.value='';});
+  ['cc-ctx','cc-pers','cc-task','cc-goal','cc-fmt','cc-more'].forEach(id=>{const el=document.getElementById(id);if(el){el.textContent='0 chars';el.style.color='';}});
+  livePreview();showToast('🗑 Campos limpos');
+}
+
+/* ═══════════════════════════════════════
+   ETAPAS
+═══════════════════════════════════════ */
+let stepCounter=0,steps=[];
+const GATES=['IF','ELIF','ELSE','AND','OR','NOT','STOP'];
+
+function addStep(){
+  stepCounter++;
+  steps.push({id:stepCounter,title:'',instruction:'',expected:'',gateType:'IF',gateCond:''});
+  renderSteps();stepsLivePreview();
+}
+function removeStep(id){steps=steps.filter(s=>s.id!==id);renderSteps();stepsLivePreview();}
+
+function gateCondPlaceholder(t){
+  return{IF:'Ex: a resposta contiver mais de 3 tópicos',ELIF:'Ex: a resposta for muito curta',ELSE:'(executa automaticamente)',AND:'Ex: o tom for formal E tiver exemplos',OR:'Ex: for sobre futebol OU esportes',NOT:'Ex: NÃO mencionar concorrentes',STOP:'(fim do fluxo)'}[t]||'';
+}
+
+function renderSteps(){
+  const list=document.getElementById('steps-list');
+  list.innerHTML='';
+  steps.forEach((s,idx)=>{
+    const card=document.createElement('div');
+    card.className='step-card';card.id='step-'+s.id;
+    const opts=GATES.map(g=>`<option value="${g}"${s.gateType===g?' selected':''}>${g}</option>`).join('');
+    card.innerHTML=`
+      <div class="step-head">
+        <div class="step-num">${idx+1}</div>
+        <input class="step-title-input" type="text" value="${esc(s.title)}" placeholder="Título da etapa (ex: Analisar o contexto)">
+        <button class="step-del" onclick="removeStep(${s.id})">✕</button>
+      </div>
+      <div class="step-body">
+        <div class="step-field"><label>Instrução — O que fazer nesta etapa</label>
+          <textarea class="step-instruction" rows="3" placeholder="Ex: Analise o perfil do Instagram e identifique pontos fortes e fracos...">${esc(s.instruction)}</textarea></div>
+        <div class="step-field"><label>Resultado esperado desta etapa</label>
+          <textarea class="step-expected" rows="2" placeholder="Ex: Lista com 3 pontos fortes e 3 pontos de melhoria...">${esc(s.expected)}</textarea></div>
+      </div>
+      <div class="gate-row">
+        <span class="gate-label">Porta →</span>
+        <select class="gate-select" onchange="onGateChange(${s.id},this.value)">${opts}</select>
+        <span class="gate-badge ${s.gateType}" id="gbadge-${s.id}">${s.gateType}</span>
+        <input class="gate-cond" type="text" value="${esc(s.gateCond)}" placeholder="${gateCondPlaceholder(s.gateType)}"
+          ${s.gateType==='ELSE'||s.gateType==='STOP'?'disabled style="opacity:.4"':''}>
+      </div>`;
+    card.querySelector('.step-title-input').addEventListener('input',()=>syncStep(s.id));
+    card.querySelector('.step-instruction').addEventListener('input',()=>syncStep(s.id));
+    card.querySelector('.step-expected').addEventListener('input',()=>syncStep(s.id));
+    card.querySelector('.gate-select').addEventListener('change',()=>syncStep(s.id));
+    card.querySelector('.gate-cond').addEventListener('input',()=>syncStep(s.id));
+    list.appendChild(card);
+  });
+}
+
+function syncStep(id){
+  const s=steps.find(x=>x.id===id);if(!s)return;
+  const card=document.getElementById('step-'+id);
+  s.title=card.querySelector('.step-title-input').value;
+  s.instruction=card.querySelector('.step-instruction').value;
+  s.expected=card.querySelector('.step-expected').value;
+  s.gateType=card.querySelector('.gate-select').value;
+  s.gateCond=card.querySelector('.gate-cond').value;
+  stepsLivePreview();
+}
+
+function onGateChange(id,val){
+  const s=steps.find(x=>x.id===id);if(!s)return;
+  s.gateType=val;
+  const card=document.getElementById('step-'+id);
+  const badge=document.getElementById('gbadge-'+id);
+  const cond=card.querySelector('.gate-cond');
+  badge.className='gate-badge '+val;badge.textContent=val;
+  if(val==='ELSE'||val==='STOP'){cond.disabled=true;cond.style.opacity='.4';cond.value='';s.gateCond='';}
+  else{cond.disabled=false;cond.style.opacity='1';cond.placeholder=gateCondPlaceholder(val);}
+  stepsLivePreview();
+}
+
+function buildStepsPrompt(){
+  if(!steps.length)return'';
+  const L=[];
+  L.push('# PROMPT EM ETAPAS COM PORTAS LÓGICAS');
+  L.push('Execute as etapas abaixo na ordem. Respeite as portas lógicas antes de avançar.\n');
+  steps.forEach((s,idx)=>{
+    const n=idx+1,title=s.title.trim()||'Etapa '+n;
+    L.push(`## ETAPA ${n} — ${title}`);
+    if(s.instruction.trim())L.push(s.instruction.trim());
+    if(s.expected.trim())L.push('\n→ Resultado esperado: '+s.expected.trim());
+    L.push('');
+    const gate=s.gateType,cond=s.gateCond.trim();
+    const next=idx===steps.length-1?'encerre o fluxo':`avance para a Etapa ${n+1}`;
+    if(gate==='STOP')L.push('[ STOP ] — Encerre o fluxo aqui.');
+    else if(gate==='ELSE')L.push('[ ELSE ] — Se nenhuma condição anterior for verdadeira, execute a próxima etapa.');
+    else L.push(`[ ${gate} ${cond?'"'+cond+'"':'(condição não definida)'} ] → ${next}`);
+    L.push('\n'+'─'.repeat(50));
+  });
+  return L.join('\n');
+}
+
+function stepsLivePreview(){
+  const raw=buildStepsPrompt();
+  const el=document.getElementById('steps-preview-output');
+  if(!raw){el.innerHTML='<span style="color:var(--muted);font-style:italic">Adicione etapas acima para visualizar o prompt aqui...</span>';return;}
+  const e=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  el.innerHTML=e
+    .replace(/(# PROMPT EM ETAPAS COM PORTAS LÓGICAS)/g,'<span class="tag-green">$1</span>')
+    .replace(/(## ETAPA \d+ —[^\n]*)/g,'<span class="tag-blue">$1</span>')
+    .replace(/(\[ IF [^\]]*\])/g,'<span class="tag-gate-g">$1</span>')
+    .replace(/(\[ ELIF [^\]]*\])/g,'<span class="tag-gate-b">$1</span>')
+    .replace(/(\[ ELSE \])/g,'<span class="tag-gate-o">$1</span>')
+    .replace(/(\[ AND [^\]]*\])/g,'<span class="tag-gate-p">$1</span>')
+    .replace(/(\[ OR [^\]]*\])/g,'<span class="tag-gate-o">$1</span>')
+    .replace(/(\[ NOT [^\]]*\])/g,'<span class="tag-gate-r">$1</span>')
+    .replace(/(\[ STOP \].*)/g,'<span class="tag-gate-r">$1</span>')
+    .replace(/(→ Resultado esperado:[^\n]*)/g,'<span class="tag-gold">$1</span>')
+    .replace(/(─+)/g,'<span class="tag-muted">$1</span>');
+}
+
+function clearSteps(){
+  if(!confirm('Limpar todas as etapas?'))return;
+  steps=[];stepCounter=0;renderSteps();stepsLivePreview();showToast('🗑 Etapas limpas');
+}
+
+/* ═══════════════════════════════════════
+   PROJETO — WIZARD
+═══════════════════════════════════════ */
+let currentWizStep=1;
+const WIZ_TOTAL=5;
+const WIZ_LABELS=['Visão Geral','Persona','Público','Formato','Revisão'];
+
+function initWizNav(){
+  const nav=document.getElementById('wiz-nav');
+  nav.innerHTML='';
+  for(let i=1;i<=WIZ_TOTAL;i++){
+    const wrap=document.createElement('div');
+    wrap.className='wiz-step';
+    const stepWrap=document.createElement('div');
+    stepWrap.className='wiz-step-wrap';
+    const dot=document.createElement('div');
+    dot.className='wiz-dot'+(i===1?' active':'');
+    dot.id='wdot-'+i;
+    dot.textContent=i;
+    dot.onclick=()=>wizGo(i);
+    const lbl=document.createElement('div');
+    lbl.className='wiz-label';
+    lbl.textContent=WIZ_LABELS[i-1];
+    stepWrap.appendChild(dot);stepWrap.appendChild(lbl);
+    wrap.appendChild(stepWrap);
+    if(i<WIZ_TOTAL){
+      const line=document.createElement('div');
+      line.className='wiz-line';line.id='wline-'+i;
+      wrap.appendChild(line);
+    }
+    nav.appendChild(wrap);
+  }
+}
+
+function wizGo(n){
+  if(n<1||n>WIZ_TOTAL)return;
+  // hide current
+  document.getElementById('wiz-'+currentWizStep).classList.remove('active');
+  // update dots
+  for(let i=1;i<=WIZ_TOTAL;i++){
+    const dot=document.getElementById('wdot-'+i);
+    if(!dot)continue;
+    dot.classList.remove('active','done');
+    if(i<n)dot.classList.add('done');
+    else if(i===n)dot.classList.add('active');
+  }
+  for(let i=1;i<WIZ_TOTAL;i++){
+    const line=document.getElementById('wline-'+i);
+    if(line)line.classList.toggle('done',i<n);
+  }
+  // progress
+  const pct=Math.round((n/WIZ_TOTAL)*100);
+  document.getElementById('proj-progress').style.width=pct+'%';
+  currentWizStep=n;
+  document.getElementById('wiz-'+n).classList.add('active');
+  // if going to step 5, update summary
+  if(n===5)updateProjSummary();
+}
+
+function selectRadio(groupId,label){
+  document.querySelectorAll('#'+groupId+' .radio-opt').forEach(l=>l.classList.remove('selected'));
+  label.classList.add('selected');
+}
+
+function toggleCheck(item){item.classList.toggle('checked');}
+
+// tags
+let projTags=[];
+function initTagsInput(){
+  const input=document.getElementById('tags-input');
+  if(!input)return;
+  input.addEventListener('keydown',e=>{
+    if(e.key==='Enter'||e.key===','){
+      e.preventDefault();
+      const val=input.value.trim().replace(/,$/,'');
+      if(val&&!projTags.includes(val)){projTags.push(val);renderTags();}
+      input.value='';
+    }
+    if(e.key==='Backspace'&&input.value===''&&projTags.length){
+      projTags.pop();renderTags();
+    }
+  });
+}
+function renderTags(){
+  const wrap=document.getElementById('tags-wrap');
+  wrap.querySelectorAll('.tag-chip').forEach(c=>c.remove());
+  const input=document.getElementById('tags-input');
+  projTags.forEach((t,i)=>{
+    const chip=document.createElement('div');
+    chip.className='tag-chip';
+    chip.innerHTML=`${esc(t)}<button onclick="removeTag(${i})">×</button>`;
+    wrap.insertBefore(chip,input);
+  });
+}
+function removeTag(i){projTags.splice(i,1);renderTags();}
+
+function getRadioVal(groupId){
+  const sel=document.querySelector('#'+groupId+' .radio-opt.selected');
+  return sel?sel.querySelector('input').value:'';
+}
+function getCheckedItems(listId){
+  const items=document.querySelectorAll('#'+listId+' .check-item.checked .check-text');
+  return Array.from(items).map(el=>el.childNodes[0].textContent.trim());
+}
+function getVal(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+
+function updateProjSummary(){
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val||'—';};
+  set('sum-name',getVal('proj-name'));
+  set('sum-idea',truncate(getVal('proj-idea'),80));
+  set('sum-purpose',truncate(getVal('proj-purpose'),80));
+  set('sum-category',getRadioVal('proj-category'));
+  set('sum-persona',truncate(getVal('proj-persona'),80));
+  set('sum-ctx',truncate(getVal('proj-ctx'),80));
+  set('sum-audience',truncate(getVal('proj-audience'),80));
+  set('sum-tone',getRadioVal('proj-tone'));
+  set('sum-tags',projTags.length?projTags.join(', '):'—');
+  set('sum-fmt',truncate(getVal('proj-fmt'),80));
+  buildAndPreviewProj();
+}
+
+function truncate(s,n){return s&&s.length>n?s.slice(0,n)+'...':s;}
+
+function buildProjPrompt(){
+  const name=getVal('proj-name')||'Projeto Sem Nome';
+  const idea=getVal('proj-idea');
+  const purpose=getVal('proj-purpose');
+  const category=getRadioVal('proj-category');
+  const persona=getVal('proj-persona');
+  const ctx=getVal('proj-ctx');
+  const never=getVal('proj-never');
+  const audience=getVal('proj-audience');
+  const tone=getRadioVal('proj-tone');
+  const tags=projTags.join(', ');
+  const fmt=getVal('proj-fmt');
+  const deliverables=getCheckedItems('proj-deliverables');
+  const delivExtra=getVal('proj-deliverables-extra');
+
+  const parts=[];
+  parts.push(`# INSTRUÇÕES DO PROJETO: ${name.toUpperCase()}`);
+  parts.push(`Categoria: ${category||'Não definida'}`);
+  if(idea) parts.push(`\n## 💡 IDEIA CENTRAL\n${idea}`);
+  if(purpose) parts.push(`\n## 🎯 PROPÓSITO DO PROJETO\n${purpose}`);
+  if(persona) parts.push(`\n## 🎭 SUA PERSONA E COMPORTAMENTO\n${persona}`);
+  if(ctx) parts.push(`\n## 🌐 CONTEXTO FIXO — O QUE VOCÊ SEMPRE DEVE SABER\n${ctx}`);
+  if(never) parts.push(`\n## 🚫 O QUE VOCÊ NUNCA DEVE FAZER\n${never}`);
+  if(audience) parts.push(`\n## 👥 PÚBLICO-ALVO\n${audience}`);
+  if(tone) parts.push(`\n## 🗣️ TOM DE VOZ\n${tone}`);
+  if(tags) parts.push(`\n## 🏷️ PALAVRAS-CHAVE IMPORTANTES\n${tags}`);
+  if(fmt) parts.push(`\n## 📐 FORMATO PADRÃO DE RESPOSTA\n${fmt}`);
+  const allDeliv=[...deliverables];
+  if(delivExtra)allDeliv.push(delivExtra);
+  if(allDeliv.length) parts.push(`\n## 📦 ENTREGÁVEIS ESPERADOS NESTE PROJETO\n${allDeliv.map((d,i)=>`${i+1}. ${d}`).join('\n')}`);
+  parts.push('\n\n---\nPrompt gerado com Prompt Engineer · Hugo Marcello · 2026');
+  return parts.join('\n');
+}
+
+function buildAndPreviewProj(){
+  const raw=buildProjPrompt();
+  const el=document.getElementById('proj-preview-output');
+  const e=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  el.innerHTML=e
+    .replace(/(# INSTRUÇÕES DO PROJETO:[^\n]*)/g,'<span class="tag-gold">$1</span>')
+    .replace(/(## 💡[^\n]*|## 🎯[^\n]*|## 🎭[^\n]*|## 🌐[^\n]*|## 🚫[^\n]*|## 👥[^\n]*|## 🗣️[^\n]*|## 🏷️[^\n]*|## 📐[^\n]*|## 📦[^\n]*)/g,'<span class="tag-blue">$1</span>')
+    .replace(/(---)/g,'<span class="tag-muted">$1</span>');
+}
+
+function clearProj(){
+  if(!confirm('Limpar todo o projeto?'))return;
+  ['proj-name','proj-idea','proj-purpose','proj-persona','proj-ctx','proj-never','proj-audience','proj-fmt','proj-deliverables-extra'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.querySelectorAll('#proj-category .radio-opt, #proj-tone .radio-opt').forEach(l=>l.classList.remove('selected'));
+  projTags=[];renderTags();
+  document.querySelectorAll('#proj-deliverables .check-item').forEach(i=>i.classList.remove('checked'));
+  wizGo(1);
+  document.getElementById('proj-preview-output').innerHTML='Clique em "Gerar Prompt do Projeto" para visualizar aqui...';
+  showToast('🗑 Projeto limpo');
+}
+
+/* ═══════════════════════════════════════
+   EXPORT / COPY
+═══════════════════════════════════════ */
+function buildPromptFor(mode){
+  if(mode==='gabarito')return buildGabaritoPrompt();
+  if(mode==='steps')return buildStepsPrompt();
+  if(mode==='proj')return buildProjPrompt();
+  return'';
+}
+async function copyPrompt(mode){
+  const text=buildPromptFor(mode);
+  if(!text){showToast('⚠ Nenhum conteúdo para copiar');return;}
+  try{await navigator.clipboard.writeText(text);showToast('✓ Prompt copiado!');}
+  catch{fallbackCopy(text);}
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';
+  document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+  showToast('✓ Prompt copiado!');
+}
+function downloadPrompt(mode){
+  const text=buildPromptFor(mode);
+  if(!text){showToast('⚠ Nenhum conteúdo para exportar');return;}
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const ts=new Date().toISOString().slice(0,10);
+  a.href=url;a.download=`prompt-${mode}-${ts}.txt`;a.click();
+  URL.revokeObjectURL(url);showToast('✓ Arquivo exportado!');
+}
+
+/* ═══════════════════════════════════════
+   UTILS
+═══════════════════════════════════════ */
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ═══════════════════════════════════════
+   SKILL TAB
+═══════════════════════════════════════ */
+let currentSkillType='code';
+let currentSkillWizStep=1;
+const SKILL_WIZ_TOTAL=4;
+const SKILL_WIZ_LABELS=['O que é','Estrutura','Construir','Instalar'];
+let injectItems=[];
+
+function setSkillType(type){
+  currentSkillType=type;
+  document.getElementById('stype-code').classList.toggle('active',type==='code');
+  document.getElementById('stype-web').classList.toggle('active',type==='web');
+  document.getElementById('skill-code-panel').style.display=type==='code'?'':'none';
+  document.getElementById('skill-web-panel').style.display=type==='web'?'':'none';
+}
+
+function initSkillWizNav(){
+  const nav=document.getElementById('skill-wiz-nav');
+  if(!nav)return;
+  nav.innerHTML='';
+  for(let i=1;i<=SKILL_WIZ_TOTAL;i++){
+    const wrap=document.createElement('div');wrap.className='wiz-step';
+    const sw=document.createElement('div');sw.className='wiz-step-wrap';
+    const dot=document.createElement('div');
+    dot.className='wiz-dot'+(i===1?' active':'');dot.id='swdot-'+i;dot.textContent=i;
+    dot.onclick=()=>skillWizGo(i);
+    const lbl=document.createElement('div');lbl.className='wiz-label';lbl.textContent=SKILL_WIZ_LABELS[i-1];
+    sw.appendChild(dot);sw.appendChild(lbl);wrap.appendChild(sw);
+    if(i<SKILL_WIZ_TOTAL){const line=document.createElement('div');line.className='wiz-line';line.id='swline-'+i;wrap.appendChild(line);}
+    nav.appendChild(wrap);
+  }
+}
+
+function skillWizGo(n){
+  if(n<1||n>SKILL_WIZ_TOTAL)return;
+  document.getElementById('skill-wiz-'+currentSkillWizStep).classList.remove('active');
+  for(let i=1;i<=SKILL_WIZ_TOTAL;i++){
+    const dot=document.getElementById('swdot-'+i);if(!dot)continue;
+    dot.classList.remove('active','done');
+    if(i<n)dot.classList.add('done');
+    else if(i===n)dot.classList.add('active');
+  }
+  for(let i=1;i<SKILL_WIZ_TOTAL;i++){const line=document.getElementById('swline-'+i);if(line)line.classList.toggle('done',i<n);}
+  const pct=Math.round((n/SKILL_WIZ_TOTAL)*100);
+  document.getElementById('skill-progress').style.width=pct+'%';
+  currentSkillWizStep=n;
+  document.getElementById('skill-wiz-'+n).classList.add('active');
+  if(n===4){skillLivePreview();updateTerminalCommands();}
+}
+
+// inject rows
+let injectCounter=0;
+function addInject(){
+  injectCounter++;
+  const id=injectCounter;
+  injectItems.push({id,cmd:''});
+  renderInjectList();
+}
+function removeInject(id){injectItems=injectItems.filter(x=>x.id!==id);renderInjectList();skillLivePreview();}
+function renderInjectList(){
+  const list=document.getElementById('inject-list');
+  list.innerHTML='';
+  injectItems.forEach(item=>{
+    const row=document.createElement('div');row.className='inject-row';
+    row.innerHTML=`<span class="inject-label">!&#96;</span><input class="inject-input" type="text" value="${esc(item.cmd)}" placeholder="Ex: git diff HEAD · cat package.json · date"><span class="inject-label">&#96;</span><button class="inject-del" onclick="removeInject(${item.id})">✕</button>`;
+    row.querySelector('.inject-input').addEventListener('input',e=>{item.cmd=e.target.value;skillLivePreview();});
+    list.appendChild(row);
+  });
+}
+
+function buildSkillMd(){
+  const name=(document.getElementById('skill-name')||{}).value||'';
+  const desc=(document.getElementById('skill-desc')||{}).value||'';
+  const body=(document.getElementById('skill-body')||{}).value||'';
+  const invEl=document.querySelector('#skill-invocation .radio-opt.selected input');
+  const manualOnly=invEl&&invEl.value==='true';
+  const lines=[];
+  lines.push('---');
+  if(name.trim())lines.push('name: '+name.trim().toLowerCase().replace(/\s+/g,'-'));
+  if(desc.trim())lines.push('description: '+desc.trim());
+  if(manualOnly)lines.push('disable-model-invocation: true');
+  lines.push('---');
+  lines.push('');
+  // inject blocks
+  injectItems.forEach(item=>{
+    if(item.cmd.trim())lines.push('!`'+item.cmd.trim()+'`\n');
+  });
+  if(body.trim())lines.push(body.trim());
+  return lines.join('\n');
+}
+
+function skillLivePreview(){
+  const raw=buildSkillMd();
+  const el=document.getElementById('skill-preview-output');
+  if(!el)return;
+  const name=((document.getElementById('skill-name')||{}).value||'minha-skill').trim().toLowerCase().replace(/\s+/g,'-')||'minha-skill';
+  const scopeEl=document.querySelector('#skill-scope .radio-opt.selected input');
+  const isPersonal=!scopeEl||scopeEl.value==='personal';
+  const path=isPersonal?`~/.claude/skills/${name}/SKILL.md`:`.claude/skills/${name}/SKILL.md`;
+  const fn=document.getElementById('skill-preview-filename');
+  if(fn)fn.textContent='📄 '+path;
+  if(!raw.trim()||raw==='---\n---\n'){el.innerHTML='<span style="color:var(--muted);font-style:italic">Preencha os campos na etapa anterior...</span>';return;}
+  const e=raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  el.innerHTML=e
+    .replace(/(---)/g,'<span style="color:var(--muted)">$1</span>')
+    .replace(/(name:|description:|disable-model-invocation:)/g,'<span style="color:var(--accent2)">$1</span>')
+    .replace(/(!\`[^`]*\`)/g,'<span style="color:var(--accent3)">$1</span>')
+    .replace(/(## [^\n]+)/g,'<span style="color:var(--accent)">$1</span>');
+}
+
+function updateTerminalCommands(){
+  const name=((document.getElementById('skill-name')||{}).value||'minha-skill').trim().toLowerCase().replace(/\s+/g,'-')||'minha-skill';
+  const scopeEl=document.querySelector('#skill-scope .radio-opt.selected input');
+  const isPersonal=!scopeEl||scopeEl.value==='personal';
+  const base=isPersonal?'~/.claude/skills/'+name:'.claude/skills/'+name;
+  const mkdir=document.getElementById('term-mkdir');
+  const touch=document.getElementById('term-touch');
+  const invoke=document.getElementById('term-invoke');
+  if(mkdir)mkdir.textContent='mkdir -p '+base;
+  if(touch)touch.textContent='touch '+base+'/SKILL.md';
+  if(invoke)invoke.textContent='/'+name;
+  // click to copy on codeblocks
+  document.querySelectorAll('.term-codeblock').forEach(el=>{
+    el.onclick=function(){
+      navigator.clipboard.writeText(this.textContent).then(()=>showToast('✓ Copiado!')).catch(()=>{});
+    };
+  });
+}
+
+// extend buildPromptFor and export
+const _origBuild=window.buildPromptFor||null;
+
+function buildPromptFor(mode){
+  if(mode==='skill')return buildSkillMd();
+  if(mode==='gabarito')return buildGabaritoPrompt();
+  if(mode==='steps')return buildStepsPrompt();
+  if(mode==='proj')return buildProjPrompt();
+  return'';
+}
+
+// extend downloadPrompt to use .md for skill
+const _origDownload=window.downloadPrompt;
+function downloadPrompt(mode){
+  const text=buildPromptFor(mode);
+  if(!text){showToast('⚠ Nenhum conteúdo para exportar');return;}
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const name=mode==='skill'?(((document.getElementById('skill-name')||{}).value||'skill').trim().toLowerCase().replace(/\s+/g,'-')||'skill'):'';
+  const ts=new Date().toISOString().slice(0,10);
+  a.href=url;
+  a.download=mode==='skill'?`SKILL.md`:`prompt-${mode}-${ts}.txt`;
+  a.click();URL.revokeObjectURL(url);showToast('✓ Arquivo exportado!');
+}
+
+// init on load
+document.addEventListener('DOMContentLoaded',()=>{
+  initSkillWizNav();
+  setSkillType('code');
+});
+</script>
+</body>
+</html>
